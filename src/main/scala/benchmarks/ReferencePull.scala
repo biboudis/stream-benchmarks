@@ -3,53 +3,75 @@ package benchmarks
 import java.util.concurrent.TimeUnit
 
 import org.openjdk.jmh.annotations._
+import org.openjdk.jmh.infra.Blackhole
 import streams._
 
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
-@BenchmarkMode(Array(Mode.AverageTime))
-@State(Scope.Thread)
-@Fork(1)
+@BenchmarkMode(scala.Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Fork(3)
+@Warmup(iterations = 30)
+@Measurement(iterations = 30)
+@State(Scope.Benchmark)
 class ReferencePull {
-  var N: Int = _
-  var v: Array[Long] = _
-  var vHi: Array[Long] = _
-  var vLo: Array[Long] = _
 
-  @Setup
-  def prepare(): Unit = {
-    N = 10000000
-    v = Array.tabulate(N)(i => i.toLong % 1000)
-    vHi = Array.tabulate(1000000)(_.toLong)
-    vLo = Array.tabulate(10)(_.toLong)
+  @Param(scala.Array("2", "4", "8", "16", "39", "282", "73121", "7312102"))
+  var sizeOuter: Int = _
+
+  @Param(scala.Array("2", "4", "8", "16", "39", "282", "73121", "7312102"))
+  var sizeInner: Int = _
+
+  var shortRangingFactor: Int = _
+  var vOuter: Array[Long] = _
+  var vInner: Array[Long] = _
+
+  @Setup(Level.Trial)
+  def initData(): Unit = {
+
+    def fillArray(range: Int) = {
+      val array = new Array[Long](range)
+      var i = 0
+      while (i < range) {
+        array(i) = scala.util.Random.nextInt(range).toLong
+        i += 1
+      }
+      array
+    }
+
+    shortRangingFactor = (sizeOuter * 0.2).toInt
+    vOuter = fillArray(sizeOuter)
+    vInner = fillArray(sizeInner)
   }
 
   @Benchmark
-  def sum () : Long = {
-    val sum : Long = Pull.of(v)
-      .fold(0L)(_+_)
-    sum
+  def fold(bh: Blackhole) : Unit = {
+    val res : Long = Pull.of(vOuter)
+      .foldLeft(0L)(_+_)
+
+    bh.consume(res)
   }
 
   @Benchmark
-  def sumOfSquares () : Long = {
-    val sum : Long = Pull.of(v)
+  def fold_map(bh: Blackhole) : Unit = {
+    val res : Long = Pull.of(vOuter)
       .map(d => d * d)
-      .fold(0L)(_+_)
-    sum
+      .foldLeft(0L)(_+_)
+
+    bh.consume(res)
   }
 
   @Benchmark
-  def sumOfSquaresEven () : Long = {
-    val res : Long = Pull.of(v)
+  def fold_map_filter(bh: Blackhole) : Unit = {
+    val res : Long = Pull.of(vOuter)
       .filter(x => x % 2L == 0L)
       .map(x => x * x)
-      .fold(0L)(_+_)
-    res
+      .foldLeft(0L)(_+_)
+
+    bh.consume(res)
   }
 
   @Benchmark
-  def maps () : Long = {
-    val res : Long = Push.of(v)
+  def multiple_maps(bh: Blackhole) : Unit = {
+    val res : Long = Pull.of(vOuter)
       .map(x => x * 1)
       .map(x => x * 2)
       .map(x => x * 3)
@@ -57,13 +79,14 @@ class ReferencePull {
       .map(x => x * 5)
       .map(x => x * 6)
       .map(x => x * 7)
-      .fold(0L)(_+_)
-    res
+      .foldLeft(0L)(_+_)
+
+    bh.consume(res)
   }
 
   @Benchmark
-  def filters () : Long = {
-    val res : Long = Push.of(v)
+  def multiple_filters(bh: Blackhole) : Unit = {
+    val res : Long = Pull.of(vOuter)
       .filter(x => x > 1)
       .filter(x => x > 2)
       .filter(x => x > 3)
@@ -71,21 +94,28 @@ class ReferencePull {
       .filter(x => x > 5)
       .filter(x => x > 6)
       .filter(x => x > 7)
-      .fold(0L)(_+_)
-    res
+      .foldLeft(0L)(_+_)
+
+    bh.consume(res)
   }
 
   @Benchmark
-  def cart () : Long = {
-    val sum : Long = Pull.of(vHi)
-      .flatMap(d => Pull.of(vLo).map (dp => dp * d))
-      .fold(0L)(_+_)
-    sum
+  def flatMap_map_sum(bh: Blackhole) : Unit  = {
+    val res : Long = Pull.of(vOuter)
+      .flatMap(d => Pull.of(vInner).map (dp => dp * d))
+      .foldLeft(0L)(_+_)
+
+    bh.consume(res)
   }
 
   @Benchmark
-  def flatMap_take () : Long = {
-    val sum = Pull.of(v).flatMap((x) => Pull.of(vLo).map((dP) => dP * x)).take(20000000).fold(0L)(_+_)
-    sum
+  def flatMap_take(bh: Blackhole) : Unit = {
+    val res : Long = Pull.of(vOuter)
+      .flatMap((x) => Pull.of(vInner)
+        .map((dP) => dP * x))
+      .take(shortRangingFactor)
+      .foldLeft(0L)(_+_)
+
+    bh.consume(res)
   }
 }

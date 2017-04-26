@@ -1,7 +1,3 @@
-/**
-  * Created by bibou on 06/04/2017.
-  */
-
 package streams
 
 import java.util.NoSuchElementException
@@ -106,7 +102,7 @@ class Pull[T](val sIter: Iterator[T]) {
   }
 
 
-  def fold[A](a: A)(op: (A, T) => A): A = {
+  def foldLeft[A](a: A)(op: (A, T) => A): A = {
     var acc = a
     while (sIter.hasNext) {
       acc = op(acc, sIter.next())

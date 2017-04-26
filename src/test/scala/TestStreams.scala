@@ -12,7 +12,7 @@ class TestStreams {
     val res = Pull
       .of(Array(1,2,3))
       .map(x => x * x)
-      .fold(0)(_+_)
+      .foldLeft(0)(_+_)
 
     assert(res == 14)
   }
@@ -21,7 +21,7 @@ class TestStreams {
   def test_pull_cart() = {
     val res = Pull.of(Array(1,2,3))
       .flatMap(x => Pull.of(Array(1,2,3)).map(y => x * y))
-      .fold(0)(_+_)
+      .foldLeft(0)(_+_)
 
     assert(res == 36)
   }
@@ -30,7 +30,7 @@ class TestStreams {
   def test_push_cart() = {
     val res = Push.of(Array(1,2,3))
       .flatMap(x => Push.of(Array(1,2,3)).map(y => x * y))
-      .fold(0)(_+_)
+      .foldLeft(0)(_+_)
 
     assert(res == 36)
   }
@@ -39,7 +39,7 @@ class TestStreams {
   def test_push_take() = {
     val res = Push.of(Array(1,2,3,4))
       .take(2)
-      .fold(0)(_+_)
+      .foldLeft(0)(_+_)
 
     assert(res == 3)
   }
@@ -48,7 +48,7 @@ class TestStreams {
   def test_pull_take() = {
     val res = Pull.of(Array(1, 2, 3, 4))
       .take(2)
-      .fold(0)(_ + _)
+      .foldLeft(0)(_ + _)
 
     assert(res == 3)
   }
@@ -58,7 +58,7 @@ class TestStreams {
     val res = Push
       .of(Array(1,2,3))
       .map(x => x * x)
-      .fold(0)(_+_)
+      .foldLeft(0)(_+_)
 
     assert(res == 14)
   }
@@ -67,8 +67,7 @@ class TestStreams {
   def test_view_sum_of_squares() = {
     val src : strawman.collection.View[Int] = strawman.collection.ArrayView(Array(1,2,3))
 
-    val res = src.map(x => x * x)
-      .foldLeft(0)(_+_)
+    val res = src.map(x => x * x).foldLeft(0)(_+_)
 
     assert(res == 14)
   }

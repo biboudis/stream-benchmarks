@@ -1,7 +1,3 @@
-/**
-  * Created by bibou on 06/04/2017.
-  */
-
 package streams
 
 class Push[T](val sF: (T => Unit) => Unit) {
@@ -11,7 +7,7 @@ class Push[T](val sF: (T => Unit) => Unit) {
     new Push(new_sF)
   }
 
-  def fold[A](a: A)(op: (A, T) => A): A = {
+  def foldLeft[A](a: A)(op: (A, T) => A): A = {
     var acc = a
     sF(v => {
       acc = op(acc, v)
