@@ -19,7 +19,7 @@ class ArrayBaseline {
   @Param(scala.Array("2", "4", "8", "16", "39", "282", "73121", "7312102"))
   var sizeOuter: Int = _
 
-  @Param(scala.Array("2", "4", "8", "16", "39", "282", "73121", "7312102"))
+  @Param(scala.Array("282"))
   var sizeInner: Int = _
 
   var shortRangingFactor: Int = _
