@@ -44,7 +44,7 @@ class ReferencePull {
 
   @Benchmark
   def fold(bh: Blackhole) : Unit = {
-    val res : Long = Pull.of(vOuter)
+    val res : Long = Pull(vOuter)
       .foldLeft(0L)(_+_)
 
     bh.consume(res)
@@ -52,7 +52,7 @@ class ReferencePull {
 
   @Benchmark
   def fold_map(bh: Blackhole) : Unit = {
-    val res : Long = Pull.of(vOuter)
+    val res : Long = Pull(vOuter)
       .map(d => d * d)
       .foldLeft(0L)(_+_)
 
@@ -61,7 +61,7 @@ class ReferencePull {
 
   @Benchmark
   def fold_map_filter(bh: Blackhole) : Unit = {
-    val res : Long = Pull.of(vOuter)
+    val res : Long = Pull(vOuter)
       .filter(x => x % 2L == 0L)
       .map(x => x * x)
       .foldLeft(0L)(_+_)
@@ -71,7 +71,7 @@ class ReferencePull {
 
   @Benchmark
   def multiple_maps(bh: Blackhole) : Unit = {
-    val res : Long = Pull.of(vOuter)
+    val res : Long = Pull(vOuter)
       .map(x => x * 1)
       .map(x => x * 2)
       .map(x => x * 3)
@@ -86,7 +86,7 @@ class ReferencePull {
 
   @Benchmark
   def multiple_filters(bh: Blackhole) : Unit = {
-    val res : Long = Pull.of(vOuter)
+    val res : Long = Pull(vOuter)
       .filter(x => x > 1)
       .filter(x => x > 2)
       .filter(x => x > 3)
@@ -101,8 +101,8 @@ class ReferencePull {
 
   @Benchmark
   def flatMap_map_sum(bh: Blackhole) : Unit  = {
-    val res : Long = Pull.of(vOuter)
-      .flatMap(d => Pull.of(vInner).map (dp => dp * d))
+    val res : Long = Pull(vOuter)
+      .flatMap(d => Pull(vInner).map (dp => dp * d))
       .foldLeft(0L)(_+_)
 
     bh.consume(res)
@@ -110,8 +110,8 @@ class ReferencePull {
 
   @Benchmark
   def flatMap_take(bh: Blackhole) : Unit = {
-    val res : Long = Pull.of(vOuter)
-      .flatMap((x) => Pull.of(vInner)
+    val res : Long = Pull(vOuter)
+      .flatMap((x) => Pull(vInner)
         .map((dP) => dP * x))
       .take(shortRangingFactor)
       .foldLeft(0L)(_+_)

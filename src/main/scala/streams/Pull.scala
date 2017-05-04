@@ -2,9 +2,11 @@ package streams
 
 import java.util.NoSuchElementException
 
-class Pull[T](val sIter: Iterator[T]) {
+import scala.reflect.ClassTag
 
-  def map[R](f: T => R) = {
+class Pull[T : Default : ClassTag](val sIter: Iterator[T]) {
+
+  def map[R : ClassTag](f: T => R) = {
     val new_sIter = new Iterator[R] {
       def hasNext = sIter.hasNext
 
@@ -42,7 +44,7 @@ class Pull[T](val sIter: Iterator[T]) {
     new Pull(new_sIter)
   }
 
-  def flatMap[R](f: T => Pull[R]) = {
+  def flatMap[R : ClassTag](f: T => Pull[R]) = {
     val new_sIter : Iterator[R] = new Iterator[R] {
 
       var current : Pull[R] = _
@@ -101,6 +103,17 @@ class Pull[T](val sIter: Iterator[T]) {
     new Pull(new_sIter)
   }
 
+  def toPush() : Push[T]= {
+
+    val sf = (iterf: T => Boolean) => {
+      while(sIter.hasNext)
+        iterf(sIter.next())
+
+      true
+    }
+
+    new Push(sf)
+  }
 
   def foldLeft[A](a: A)(op: (A, T) => A): A = {
     var acc = a
@@ -113,7 +126,7 @@ class Pull[T](val sIter: Iterator[T]) {
 
 object Pull {
 
-  def of[T](xs: Array[T]) = {
+  def apply[T : Default : ClassTag](xs: Array[T]) = {
     val new_sIter = new Iterator[T] {
       override val size = xs.length
       var i = 0
@@ -132,6 +145,5 @@ object Pull {
     }
     new Pull(new_sIter)
   }
-
 }
 
