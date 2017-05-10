@@ -3,6 +3,7 @@
   */
 
 import org.junit.Test
+import streams.Tree.{Leaf, Node, Tree, TreeOps}
 import streams._
 
 class TestStreams {
@@ -91,4 +92,16 @@ class TestStreams {
 
     assert(res == 14)
   }
+
+  @Test
+  def test_tree_from_pull() = {
+    val test = new TreeOps()
+
+    val data: Tree[Int] = Node(Node(Node(Leaf,1,Leaf),1,Node(Leaf,2,Leaf)),1,Node(Node(Leaf,3,Leaf),2,Node(Leaf,1,Leaf)))
+
+    val res: Tree[Int] = test.ofIter(Pull(Array(1,2,1,3,1,2,1)))
+
+    assert(data == res)
+  }
+
 }
